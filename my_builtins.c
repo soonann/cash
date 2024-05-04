@@ -6,8 +6,7 @@ int my_exit(int n) { return n; }
 
 // executes the given function
 int my_exec(char **inputs) {
-  execv(inputs[0], inputs + 1);
-  return -1;
+  return execv(inputs[0], inputs + 1);
 }
 
 // changes the current directory to the given str

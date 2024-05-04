@@ -1,5 +1,6 @@
 #include "my_builtins.h"
 #include <ctype.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +49,6 @@ int main() {
     getcwd(cwd, MAX_PATH_BYTES);
     printf("%s$ ", cwd);
 
-    // get value from user
     // TODO: handle the length properly instead of just using
     // MAX_INPUT_BYTES
     char *s = fgets(buf, MAX_INPUT_BYTES, stdin);
@@ -67,15 +67,23 @@ int main() {
       }
 
       int code = atoi(inputs[1]);
-      int res = my_exit(code);
-      return res;
+      int err = my_exit(code);
+      if (err == -1) {
+        fputs(strerror(errno), stdout);
+      }
+
+      return err;
     } else if (!strcmp(inputs[0], "cd")) {
-      int res = my_cd(inputs[1]);
-      if (res == -1) {
-        printf("cd: %s: No such file or directory\n", inputs[1]);
+      int err = my_cd(inputs[1]);
+      if (err == -1) {
+        printf("cd: %s\n", strerror(errno));
       }
     } else if (!strcmp(inputs[0], "exec")) {
-      my_exec(inputs + 1);
+      int err = my_exec(inputs + 1);
+      if (err == -1) {
+        printf("exec: %s\n", strerror(errno));
+      }
+
     } else {
       // TODO: fix this as well, why funky while loops?
       printf("Unrecognized command: %s\n", inputs[0]);
