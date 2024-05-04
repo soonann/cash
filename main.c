@@ -1,3 +1,4 @@
+#include "my_builtins.h"
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -8,13 +9,6 @@
 #define MAX_INPUT_BYTES 256
 #define MAX_PATH_BYTES 256
 #define MAX_CMD_ARGS 64
-
-// shows the terminal prompt
-void prompt() {
-  char buf[MAX_PATH_BYTES];
-  getcwd(buf, MAX_PATH_BYTES);
-  printf("%s$ ", buf);
-}
 
 // given a char arr, split it into an arr of char arr
 char **parse_input(char *input, unsigned int n) {
@@ -44,17 +38,19 @@ char **parse_input(char *input, unsigned int n) {
 
 // main function
 int main() {
-  bool quit = false;
   char buf[MAX_INPUT_BYTES];
 
   // handle EOF
   while (!feof(stdin)) {
 
-    // show prompt
-    prompt();
+    // get cwd
+    char cwd[MAX_PATH_BYTES];
+    getcwd(cwd, MAX_PATH_BYTES);
+    printf("%s$ ", cwd);
 
     // get value from user
-    // TODO: handle the length properly instead of just using MAX_INPUT_BYTES
+    // TODO: handle the length properly instead of just using
+    // MAX_INPUT_BYTES
     char *s = fgets(buf, MAX_INPUT_BYTES, stdin);
     if (s == NULL) {
       printf("exited shell \n");
@@ -63,10 +59,28 @@ int main() {
 
     // parse the input into command and args
     char **inputs = parse_input(s, strlen(s));
-    char **tmp = inputs;
 
-    // TODO: fix this as well, why funky while loops?
-    printf("Unrecognized command: %s\n", tmp[0]);
+    // builtins
+    if (!strcmp(inputs[0], "exit")) {
+      if (inputs[1] == NULL) {
+        return 0;
+      }
+
+      int code = atoi(inputs[1]);
+      int res = my_exit(code);
+      return res;
+    } else if (!strcmp(inputs[0], "cd")) {
+      int res = my_cd(inputs[1]);
+      if (res == -1) {
+        printf("cd: %s: No such file or directory\n", inputs[1]);
+      }
+    } else if (!strcmp(inputs[0], "exec")) {
+      my_exec(inputs + 1);
+    } else {
+      // TODO: fix this as well, why funky while loops?
+      printf("Unrecognized command: %s\n", inputs[0]);
+    }
+
     /* while (*tmp != NULL) { */
     /*   printf("%s\n", *tmp); */
     /*   tmp++; */

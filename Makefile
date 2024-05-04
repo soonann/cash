@@ -1,12 +1,13 @@
 .DEFAULT = run
 FLAGS = -Wall -no-pie -g
+OUT = myshell
 COMPILER = cc
 
 run: build
-	./main
+	./$(OUT)
 
 build:
-	$(COMPILER) main.c -o main $(FLAGS)
+	$(COMPILER) *.c -o $(OUT) $(FLAGS)
 
 clean:
-	rm main core* 2> /dev/null
+	rm $(OUT) core* 2> /dev/null
