@@ -1,11 +1,12 @@
 .DEFAULT = run
-FLAGS = -Wall -Weverything
+FLAGS = -Wall -no-pie -g
+COMPILER = cc
 
 run: build
 	./main
 
 build:
-	clang main.c -o main $(FLAGS)
+	$(COMPILER) main.c -o main $(FLAGS)
 
 clean:
-	rm main
+	rm main core* 2> /dev/null
