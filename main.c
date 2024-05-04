@@ -66,7 +66,7 @@ int main() {
     char **tmp = inputs;
 
     // TODO: fix this as well, why funky while loops?
-    printf("%s\n", tmp[0]);
+    printf("Unrecognized command: %s\n", tmp[0]);
     /* while (*tmp != NULL) { */
     /*   printf("%s\n", *tmp); */
     /*   tmp++; */
