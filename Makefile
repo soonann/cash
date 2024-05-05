@@ -1,6 +1,6 @@
 .DEFAULT = run
 FLAGS = -Wall -no-pie -g
-OUT = myshell
+OUT = crunchy
 COMPILER = cc
 
 run: build

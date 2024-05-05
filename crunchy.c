@@ -13,9 +13,6 @@
 // given a char arr, split it into an arr of char arr
 char **parse_input(char *input, unsigned int n) {
 
-  int i = 0;
-  int j = 0;
-
   // init a 2d array
   char **cmd = malloc(MAX_CMD_ARGS * sizeof(char *));
   char **head = cmd;
@@ -84,11 +81,12 @@ int main() {
       printf("Unrecognized command: %s\n", inputs[0]);
     }
 
-    char **tmp = inputs;
-    while (*tmp != NULL) {
-      printf("line is: %s\n", *tmp);
-      tmp++;
-    }
+    // print the output of the shell
+    /* char **tmp = inputs; */
+    /* while (*tmp != NULL) { */
+    /*   printf("line is: %s\n", *tmp); */
+    /*   tmp++; */
+    /* } */
   }
 
   return 0;
