@@ -12,7 +12,8 @@
 #define MAX_PATH_BYTES 256
 #define MAX_CMD_ARGS 64
 
-// Given a char array, split it into an array of char array(s)
+// Given a char array, split it into an array of char arrays
+// TODO: refactor to generate a length of n after returning
 char **parse_input(char *input, unsigned int n)
 {
 	// Init a 2d array
@@ -23,7 +24,7 @@ char **parse_input(char *input, unsigned int n)
 	*cmd = strtok(input, delim);
 	while (*cmd != NULL) {
 		// Only shift the pointer when it is not an empty string
-		if (strlen(*cmd)) {
+		if (strlen(*cmd) > 0) {
 			cmd++;
 		}
 		*cmd = strtok(NULL, delim);
@@ -44,12 +45,13 @@ void show_banner()
 int main()
 {
 	show_banner();
-	char buf[MAX_INPUT_BYTES];
 
 	// Handle EOF
 	while (!feof(stdin)) {
-		// Get current working directory
+		char buf[MAX_INPUT_BYTES];
 		char cwd[MAX_PATH_BYTES];
+
+		// Get current working directory
 		getcwd(cwd, MAX_PATH_BYTES);
 		printf("%s$ ", cwd);
 
@@ -65,61 +67,79 @@ int main()
 		char **inputs = parse_input(s, strlen(s));
 
 		// my_builtins
-		// TODO: arg length check for each builtin
+		// TODO: Arg length check for each builtin
+		// TODO: Convert if else to switch case using enums and strcmp
 		if (inputs[0][0] == '.' || inputs[0][0] == '/') {
 			pid_t pid = fork();
-			if (pid == 0) {
-				int err = my_exec(inputs);
-				if (err == -1) {
+			if (pid == -1) {
+				printf("%s: %s\n", inputs[0], strerror(errno));
+			} else if (pid == 0) {
+				if (my_exec(inputs[0], inputs) == -1) {
 					printf("%s: %s\n", inputs[0],
 					       strerror(errno));
 					exit(1);
 				} else {
 					exit(0);
 				}
-			} else if (pid == -1) {
-				printf("%s: %s\n", inputs[0], strerror(errno));
 			} else {
-				/* printf("Waiting for child process pid: [%d]\n", */
-				/*        pid); */
-
 				int wstatus;
 				waitpid(pid, &wstatus, 0);
 			}
-
 		} else if (!strcmp(inputs[0], "exit")) {
 			int code = 0;
 			if (inputs[1] != NULL) {
 				code = atoi(inputs[1]);
 			}
 
-			int err = my_exit(code);
-			if (err == -1) {
+			if (my_exit(code) == -1) {
 				fputs(strerror(errno), stdout);
 			} else {
 				printf("exit %d\n", code);
 			}
-			return err;
+
+			return code;
 		} else if (!strcmp(inputs[0], "cd")) {
-			int err = my_cd(inputs[1]);
-			if (err == -1) {
+			if (my_cd(inputs[1]) == -1) {
 				printf("cd: %s\n", strerror(errno));
 			}
 		} else if (!strcmp(inputs[0], "exec")) {
-			int err = my_exec(inputs + 1);
-			if (err == -1) {
+			if (my_exec(inputs[1], inputs + 2) == -1) {
 				printf("exec: %s\n", strerror(errno));
 			}
 		} else {
-			// TODO: fix this as well, why funky while loops?
-			printf("Unrecognized command: %s\n", inputs[0]);
+			// Search the path for the command
+			char *search = my_searchpath(inputs[0]);
+			if (search != NULL) {
+				// Run the command
+				pid_t pid = fork();
+				if (pid == -1) {
+					// Error
+					printf("%s\n", strerror(errno));
+				} else if (pid == 0) {
+					// Child
+					if (my_exec(search, inputs) == -1) {
+						printf("exec: %s: %s\n",
+						       inputs[0],
+						       strerror(errno));
+						exit(1);
+					} else {
+						exit(0);
+					}
+				} else {
+					// Parent
+					waitpid(pid, NULL, 0);
+				}
+				free(search);
+			} else {
+				printf("Unrecognized command: %s\n", inputs[0]);
+			}
 		}
 
 		// print the output of the shell
-		/* char **tmp = inputs; */
-		/* while (*tmp != NULL) { */
-		/* 	printf("line is: %s\n", *tmp); */
-		/* 	tmp++; */
+		/* int offset = 0; */
+		/* while (*(inputs + offset) != NULL) { */
+		/* 	printf("line is: %s\n", *(inputs + offset)); */
+		/* 	offset++; */
 		/* } */
 	}
 
