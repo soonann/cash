@@ -1,10 +1,11 @@
-#include "my_builtins.h"
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "my_builtins.h"
 
 #define MAX_INPUT_BYTES 256
 #define MAX_PATH_BYTES 256
@@ -36,7 +37,7 @@ int main()
 
 	// Handle EOF
 	while (!feof(stdin)) {
-		// get cwd
+		// Get current working directory
 		char cwd[MAX_PATH_BYTES];
 		getcwd(cwd, MAX_PATH_BYTES);
 		printf("%s$ ", cwd);
@@ -49,10 +50,10 @@ int main()
 			return 1;
 		}
 
-		// parse the input into command and args
+		// Parse the input into command and args
 		char **inputs = parse_input(s, strlen(s));
 
-		// builtins
+		// my_builtins
 		if (!strcmp(inputs[0], "exit")) {
 			if (inputs[1] == NULL) {
 				return 0;
@@ -75,7 +76,6 @@ int main()
 			if (err == -1) {
 				printf("exec: %s\n", strerror(errno));
 			}
-
 		} else {
 			// TODO: fix this as well, why funky while loops?
 			printf("Unrecognized command: %s\n", inputs[0]);
