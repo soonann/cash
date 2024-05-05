@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <sys/wait.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,14 +18,15 @@ char **parse_input(char *input, unsigned int n)
 	// Init a 2d array
 	char **cmd = malloc(MAX_CMD_ARGS * sizeof(char *));
 	char **head = cmd;
+	const char *delim = " \n";
 
-	*cmd = strtok(input, " ");
+	*cmd = strtok(input, delim);
 	while (*cmd != NULL) {
 		// Only shift the pointer when it is not an empty string
 		if (strlen(*cmd)) {
 			cmd++;
 		}
-		*cmd = strtok(NULL, " ");
+		*cmd = strtok(NULL, delim);
 	}
 
 	return head;
@@ -33,6 +35,9 @@ char **parse_input(char *input, unsigned int n)
 // Main function
 int main()
 {
+	fputs("---------------------------\n", stdout);
+	fputs("|Welcome to crunchy shell!|\n", stdout);
+	fputs("---------------------------\n", stdout);
 	char buf[MAX_INPUT_BYTES];
 
 	// Handle EOF
@@ -54,17 +59,40 @@ int main()
 		char **inputs = parse_input(s, strlen(s));
 
 		// my_builtins
-		if (!strcmp(inputs[0], "exit")) {
-			if (inputs[1] == NULL) {
-				return 0;
+		// TODO: arg length check for each builtin
+		if (inputs[0][0] == '.' || inputs[0][0] == '/') {
+			pid_t pid = fork();
+			if (pid == 0) {
+				int err = my_exec(inputs);
+				if (err == -1) {
+					printf("%s: %s\n", inputs[0],
+					       strerror(errno));
+					exit(1);
+				} else {
+					exit(0);
+				}
+			} else if (pid == -1) {
+				printf("%s: %s\n", inputs[0], strerror(errno));
+			} else {
+				/* printf("Waiting for child process pid: [%d]\n", */
+				/*        pid); */
+
+				int wstatus;
+				waitpid(pid, &wstatus, 0);
 			}
 
-			int code = atoi(inputs[1]);
+		} else if (!strcmp(inputs[0], "exit")) {
+			int code = 0;
+			if (inputs[1] != NULL) {
+				code = atoi(inputs[1]);
+			}
+
 			int err = my_exit(code);
 			if (err == -1) {
 				fputs(strerror(errno), stdout);
+			} else {
+				printf("exit %d\n", code);
 			}
-
 			return err;
 		} else if (!strcmp(inputs[0], "cd")) {
 			int err = my_cd(inputs[1]);
@@ -84,8 +112,8 @@ int main()
 		// print the output of the shell
 		/* char **tmp = inputs; */
 		/* while (*tmp != NULL) { */
-		/*   printf("line is: %s\n", *tmp); */
-		/*   tmp++; */
+		/* 	printf("line is: %s\n", *tmp); */
+		/* 	tmp++; */
 		/* } */
 	}
 
