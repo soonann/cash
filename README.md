@@ -1,8 +1,6 @@
 # Crunchy 
 
-Crunchy is a Linux Shell implemented in `C`.
-
-https://github.com/soonann/crunchy/raw/main/docs/demo.mp4
+Crunchy is a Linux Shell implemented in `C`
 
 This shell aims to meet the all the **9 lvls** of the [Kernel Development Pipeline (P0)](https://kdlp.underground.software/course/fall2023/assignments/P0.md) along with the bonus section.
 
