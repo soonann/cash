@@ -1,5 +1,4 @@
 #include "my_builtins.h"
-#include <ctype.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -21,17 +20,13 @@ char **parse_input(char *input, unsigned int n) {
   char **cmd = malloc(MAX_CMD_ARGS * sizeof(char *));
   char **head = cmd;
 
-  // iterate string and split by whitespaces
-  while (j < n && i < n) {
-    if (isspace(input[j])) {
-      int len = j - i;
-      *cmd = malloc((len + 1) * sizeof(char));
-      strncpy(*cmd, input + i, len);
-      (*cmd)[len] = '\0'; // set the last character in the string to null byte
+  *cmd = strtok(input, " ");
+  while (*cmd != NULL) {
+    // only shift the pointer when the value isn't a whitespace
+    if (strlen(*cmd) > 1) {
       cmd++;
-      i = j + 1;
     }
-    j++;
+    *cmd = strtok(NULL, " ");
   }
 
   return head;
@@ -89,10 +84,11 @@ int main() {
       printf("Unrecognized command: %s\n", inputs[0]);
     }
 
-    /* while (*tmp != NULL) { */
-    /*   printf("%s\n", *tmp); */
-    /*   tmp++; */
-    /* } */
+    char **tmp = inputs;
+    while (*tmp != NULL) {
+      printf("line is: %s\n", *tmp);
+      tmp++;
+    }
   }
 
   return 0;
