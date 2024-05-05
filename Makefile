@@ -7,7 +7,7 @@ run: build
 	./$(OUT)
 
 build:
-	$(COMPILER) *.c -o $(OUT) $(FLAGS)
+	$(COMPILER) -o $(OUT) $(FLAGS) *.c 
 
 clean:
 	rm $(OUT) core* 2> /dev/null

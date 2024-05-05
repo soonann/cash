@@ -1,5 +1,5 @@
-int my_exit(int n);
+int my_exit(int code);
 
-int my_cd(char *s);
+int my_cd(char *path);
 
-int my_exec(char **file);
+int my_exec(char **params);
