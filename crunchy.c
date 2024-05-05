@@ -32,12 +32,18 @@ char **parse_input(char *input, unsigned int n)
 	return head;
 }
 
-// Main function
-int main()
+// Example banner of shell
+void show_banner()
 {
 	fputs("---------------------------\n", stdout);
 	fputs("|Welcome to crunchy shell!|\n", stdout);
 	fputs("---------------------------\n", stdout);
+}
+
+// Main function
+int main()
+{
+	show_banner();
 	char buf[MAX_INPUT_BYTES];
 
 	// Handle EOF
