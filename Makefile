@@ -16,4 +16,4 @@ docker-build:
 	docker build -t cash:latest -f docker/Dockerfile .
 
 docker-run:
-	docker run -it cash:latest cash
+	docker run --name cash -it --rm cash:latest cash
