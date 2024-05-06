@@ -37,7 +37,7 @@ char **parse_input(char *input, unsigned int n)
 void show_banner()
 {
 	fputs("---------------------------\n", stdout);
-	fputs("|Welcome to crunchy shell!|\n", stdout);
+	fputs("|Welcome to cash shell!|\n", stdout);
 	fputs("---------------------------\n", stdout);
 }
 
