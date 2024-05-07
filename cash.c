@@ -1,9 +1,9 @@
 #include <errno.h>
-#include <sys/wait.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "my_builtins.h"
@@ -33,11 +33,19 @@ char **parse_input(char *input, unsigned int n)
 	return head;
 }
 
+// Given 2d char array, check each sub array for ~ and replace them
+// expand ~/ to home directory of user
+// expand ~user to home directory of user when its exists
+// keep ~not-user as ~not-user
+void tilde_expansion(char **input)
+{
+}
+
 // Example banner of shell
 void show_banner()
 {
 	fputs("---------------------------\n", stdout);
-	fputs("|Welcome to cash shell!|\n", stdout);
+	fputs("|  Welcome to cash shell! |\n", stdout);
 	fputs("---------------------------\n", stdout);
 }
 
@@ -65,6 +73,9 @@ int main()
 
 		// Parse the input into command and args
 		char **inputs = parse_input(s, strlen(s));
+
+		// Tilde expansion
+		tilde_expansion(inputs);
 
 		// my_builtins
 		// TODO: Arg length check for each builtin
