@@ -13,6 +13,11 @@
 #define MAX_CMD_ARGS 64
 #define IFS " \n"
 
+// TODO:
+// does it make sense to be allocating memory dynamically?
+// heap is slow as compared to the stack
+// do i actually need anything in the heap? look at pre-call of parse_args_str
+
 /*
  * Given string str of length str_size containing a command with args
  * parse_args_str returns a 2D char array [command/args0, args1, ..., argsn].
@@ -33,9 +38,8 @@ void parse_args_str(char *str, int str_size, char **args, int *args_size)
 		}
 		*(args + i) = strtok(NULL, IFS);
 	}
+	i++; // Include the trailing null byte
 	*args_size = i;
-	// TODO: fix realloc
-	/* args = realloc(args, sizeof(char) * (*args_size)); */
 }
 
 /*
@@ -99,6 +103,17 @@ int main()
 		char **args = malloc(MAX_CMD_ARGS * sizeof(char *));
 		int args_size;
 		parse_args_str(s, strlen(s), args, &args_size);
+		// TODO: fix realloc
+		args = realloc(args, args_size * sizeof(char *));
+
+#ifdef DEBUG
+		// print the output of the shell
+		int offset = 0;
+		while (offset < args_size) {
+			printf("line is: %s\n", *(args + offset));
+			offset++;
+		}
+#endif
 
 		// Tilde expansion
 		tilde_expansion(args, args_size);
@@ -106,6 +121,7 @@ int main()
 		// my_builtins
 		// TODO: Arg length check for each builtin
 		// TODO: Convert if else to switch case using enums and strcmp
+
 		if (args_size <= 0 || strlen(args[0]) <= 0) {
 			continue;
 		} else if (args[0][0] == '.' || args[0][0] == '/') {
@@ -173,13 +189,6 @@ int main()
 				printf("Unrecognized command: %s\n", args[0]);
 			}
 		}
-
-		// print the output of the shell
-		/* int offset = 0; */
-		/* while (*(inputs + offset) != NULL) { */
-		/* 	printf("line is: %s\n", *(inputs + offset)); */
-		/* 	offset++; */
-		/* } */
 	}
 
 	return 0;
