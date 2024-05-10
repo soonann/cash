@@ -15,38 +15,56 @@
 
 /*
  * Given string str of length str_size containing a command with args
- * parse_cmd_args_str returns a 2D char array [command, args1, ..., argsn].
+ * parse_args_str returns a 2D char array [command/args0, args1, ..., argsn].
  *
  * Note: The delimiter of each command or argument can be set with the use of
  * the macro IFS.
  */
-void parse_cmd_args_str(char *str, int str_size, char **cmd_args,
-			int *cmd_args_size)
+void parse_args_str(char *str, int str_size, char **args, int *args_size)
 {
 	// Init a 2D array
 	// TODO: refactor to 2D array instead of pointers
 	int i = 0;
-	*cmd_args = strtok(str, IFS);
-	while (*(cmd_args + i) != NULL) {
+	*args = strtok(str, IFS);
+	while (*(args + i) != NULL) {
 		// Only shift the pointer when it is not an empty string
-		if (strlen(*(cmd_args + i)) > 0) {
+		if (strlen(*(args + i)) > 0) {
 			i++;
 		}
-		*(cmd_args + i) = strtok(NULL, IFS);
+		*(args + i) = strtok(NULL, IFS);
 	}
-	*cmd_args_size = i;
-
-	// TODO: realloc before returning
+	*args_size = i;
+	// TODO: fix realloc
+	/* args = realloc(args, sizeof(char) * (*args_size)); */
 }
 
 /*
- * Given 2D char array, check each sub array for '~' and replace them with:
+ * Given 2D char array, perform tilde expansion in each sub array
+ * refer to _tilde_expansion_str for the implementation of expansion
+ */
+void tilde_expansion(char **str, int str_size)
+{
+	for (int i = 0; i < str_size; i++) {
+		char *s = str[i];
+	}
+}
+
+/* 
+ * Helper for tilde_expansion_cmd.
+ *
+ * Given a str containing a command/arg, scans for the '~' char and replaces
+ * it according to the following rules:
  * - expand ~ to home directory of current user
  * - expand ~user to home directory of user when its exists, but keep ~not-user
  *   as ~not-user when the user cannot be found with getpwnam(3)
  */
-void tilde_expansion(char **str, int n)
+void _tilde_expansion_str(char *str, int str_size)
 {
+	for (int i = 0; i < str_size; i++) {
+		if (str[i] == '~') {
+		} else if (str[i] == '/') {
+		}
+	}
 }
 
 // Example banner of shell
@@ -78,26 +96,25 @@ int main()
 		}
 
 		// Parse the input into command and args
-		char **cmd_args = malloc(MAX_CMD_ARGS * sizeof(char *));
-		int cmd_args_size;
-		parse_cmd_args_str(s, strlen(s), cmd_args, &cmd_args_size);
+		char **args = malloc(MAX_CMD_ARGS * sizeof(char *));
+		int args_size;
+		parse_args_str(s, strlen(s), args, &args_size);
 
 		// Tilde expansion
-		tilde_expansion(cmd_args, cmd_args_size);
+		tilde_expansion(args, args_size);
 
 		// my_builtins
 		// TODO: Arg length check for each builtin
 		// TODO: Convert if else to switch case using enums and strcmp
-		if (cmd_args_size <= 0 || strlen(cmd_args[0]) <= 0) {
+		if (args_size <= 0 || strlen(args[0]) <= 0) {
 			continue;
-		} else if (cmd_args[0][0] == '.' || cmd_args[0][0] == '/') {
+		} else if (args[0][0] == '.' || args[0][0] == '/') {
 			pid_t pid = fork();
 			if (pid == -1) {
-				printf("%s: %s\n", cmd_args[0],
-				       strerror(errno));
+				printf("%s: %s\n", args[0], strerror(errno));
 			} else if (pid == 0) {
-				if (my_exec(cmd_args[0], cmd_args) == -1) {
-					printf("%s: %s\n", cmd_args[0],
+				if (my_exec(args[0], args) == -1) {
+					printf("%s: %s\n", args[0],
 					       strerror(errno));
 					exit(1);
 				} else {
@@ -107,10 +124,10 @@ int main()
 				int wstatus;
 				waitpid(pid, &wstatus, 0);
 			}
-		} else if (!strcmp(cmd_args[0], "exit")) {
+		} else if (!strcmp(args[0], "exit")) {
 			int code = 0;
-			if (cmd_args[1] != NULL) {
-				code = atoi(cmd_args[1]);
+			if (args[1] != NULL) {
+				code = atoi(args[1]);
 			}
 
 			if (my_exit(code) == -1) {
@@ -120,17 +137,17 @@ int main()
 			}
 
 			return code;
-		} else if (!strcmp(cmd_args[0], "cd")) {
-			if (my_cd(cmd_args[1]) == -1) {
+		} else if (!strcmp(args[0], "cd")) {
+			if (my_cd(args[1]) == -1) {
 				printf("cd: %s\n", strerror(errno));
 			}
-		} else if (!strcmp(cmd_args[0], "exec")) {
-			if (my_exec(cmd_args[1], cmd_args + 2) == -1) {
+		} else if (!strcmp(args[0], "exec")) {
+			if (my_exec(args[1], args + 2) == -1) {
 				printf("exec: %s\n", strerror(errno));
 			}
 		} else {
 			// Search the path for the command
-			char *search = my_searchpath(cmd_args[0]);
+			char *search = my_searchpath(args[0]);
 			if (search != NULL) {
 				// Run the command
 				pid_t pid = fork();
@@ -139,9 +156,9 @@ int main()
 					printf("%s\n", strerror(errno));
 				} else if (pid == 0) {
 					// Child
-					if (my_exec(search, cmd_args) == -1) {
+					if (my_exec(search, args) == -1) {
 						printf("exec: %s: %s\n",
-						       cmd_args[0],
+						       args[0],
 						       strerror(errno));
 						exit(1);
 					} else {
@@ -153,8 +170,7 @@ int main()
 				}
 				free(search);
 			} else {
-				printf("Unrecognized command: %s\n",
-				       cmd_args[0]);
+				printf("Unrecognized command: %s\n", args[0]);
 			}
 		}
 
