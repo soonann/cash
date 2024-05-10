@@ -8,6 +8,8 @@ run: build
 
 build:
 	$(COMPILER) -o $(OUT) $(FLAGS) *.c 
+	# clang -g -O1 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize=undefined,integer,nullability,address -fsanitize-address-use-after-scope -lm -Wall $fileName -o  $fileNameWithoutExt && ASAN_OPTIONS=detect_stack_use_after_return=1 ASAN_OPTIONS=detect_leaks=1 && $dir$fileNameWithoutExt && rm $dir$fileNameWithoutExt
+
 
 clean:
 	rm $(OUT) core* 2> /dev/null
