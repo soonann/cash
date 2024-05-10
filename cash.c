@@ -20,20 +20,21 @@
  * Note: The delimiter of each command or argument can be set with the use of
  * the macro IFS.
  */
-
 void parse_cmd_args_str(char *str, int str_size, char **cmd_args,
 			int *cmd_args_size)
 {
 	// Init a 2D array
 	// TODO: refactor to 2D array instead of pointers
+	int i = 0;
 	*cmd_args = strtok(str, IFS);
-	while (*cmd_args != NULL) {
+	while (*(cmd_args + i) != NULL) {
 		// Only shift the pointer when it is not an empty string
-		if (strlen(*cmd_args) > 0) {
-			cmd_args++;
+		if (strlen(*(cmd_args + i)) > 0) {
+			i++;
 		}
-		*cmd_args = strtok(NULL, IFS);
+		*(cmd_args + i) = strtok(NULL, IFS);
 	}
+	*cmd_args_size = i;
 
 	// TODO: realloc before returning
 }
@@ -70,8 +71,6 @@ int main()
 		getcwd(cwd, MAX_PATH_BYTES);
 		printf("%s$ ", cwd);
 
-		// TODO: handle the length properly instead of just using
-		// MAX_INPUT_BYTES
 		char *s = fgets(buf, MAX_INPUT_BYTES, stdin);
 		if (s == NULL) {
 			printf("exited shell \n");
@@ -89,7 +88,9 @@ int main()
 		// my_builtins
 		// TODO: Arg length check for each builtin
 		// TODO: Convert if else to switch case using enums and strcmp
-		if (cmd_args[0][0] == '.' || cmd_args[0][0] == '/') {
+		if (cmd_args_size <= 0 || strlen(cmd_args[0]) <= 0) {
+			continue;
+		} else if (cmd_args[0][0] == '.' || cmd_args[0][0] == '/') {
 			pid_t pid = fork();
 			if (pid == -1) {
 				printf("%s: %s\n", cmd_args[0],
