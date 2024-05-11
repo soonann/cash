@@ -1,0 +1,6 @@
+-xc
+-g
+-DDEBUG
+-Wall
+-Wextra
+-Iinclude

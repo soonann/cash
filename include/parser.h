@@ -17,7 +17,7 @@ void parse_args_str(char *str, int str_size, char **args, int *args_size);
  * Given 2D char array, perform tilde expansion in each sub array
  * refer to _tilde_expansion_str for the implementation of expansion
  */
-void tilde_expansion(char **str, int str_size);
+void expansion_tilde(char **str, int str_size);
 
 /* 
  * Helper for tilde_expansion_cmd.
@@ -28,7 +28,7 @@ void tilde_expansion(char **str, int str_size);
  * - expand ~user to home directory of user when its exists, but keep ~not-user
  *   as ~not-user when the user cannot be found with getpwnam(3)
  */
-void _tilde_expansion_str(char *str, int str_size);
+void _expansion_tilde_str(char *str, int str_size);
 
 /*
  * Simple banner for the shell

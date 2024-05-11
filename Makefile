@@ -1,21 +1,35 @@
-.DEFAULT = run
-FLAGS = -Wall -no-pie -g
+.PHONY: build test run clean all
+
+CC = clang
+CFLAGS = -xc -g -DDEBUG -Wall -Wextra -Iinclude
 OUT = cash
-COMPILER = cc
 
-run: build
-	./$(OUT)
-
-build:
-	$(COMPILER) -o $(OUT) -DDEBUG $(FLAGS) *.c 
-	# clang -g -O1 -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize=undefined,integer,nullability,address -fsanitize-address-use-after-scope -lm -Wall $fileName -o  $fileNameWithoutExt && ASAN_OPTIONS=detect_stack_use_after_return=1 ASAN_OPTIONS=detect_leaks=1 && $dir$fileNameWithoutExt && rm $dir$fileNameWithoutExt
-
+all: test run
 
 clean:
-	rm $(OUT) core* 2> /dev/null
+	- rm -r build/*
 
-docker-build:
+# Release
+run: build
+	./build/cash
+
+build:
+	@mkdir -p build 2> /dev/null
+	$(CC) $(CFLAGS) -o build/$(OUT) src/*.c
+
+# Tests
+test: build-test
+	./build/test
+
+build-test: 
+	@mkdir -p build 2> /dev/null
+	$(CC) $(CFLAGS) -o build/test test/*.c
+
+# Docker
+build-docker:
 	docker build -t cash:latest -f docker/Dockerfile .
 
-docker-run:
+run-docker:
 	docker run --name cash -it --rm cash:latest cash
+
+

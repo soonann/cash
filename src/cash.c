@@ -7,10 +7,9 @@
 #include <unistd.h>
 
 #include "cash.h"
-#include "parser.h"
 #include "builtins.h"
+#include "parser.h"
 
-// Main function
 int main()
 {
 	show_banner();
@@ -37,7 +36,7 @@ int main()
 		args = realloc(args, args_size * sizeof(char *));
 
 #ifdef DEBUG
-		// print the output of the shell
+		// Print the output of the shell
 		int offset = 0;
 		while (offset < args_size) {
 			printf("line is: %s\n", *(args + offset));
@@ -46,7 +45,7 @@ int main()
 #endif
 
 		// Tilde expansion
-		tilde_expansion(args, args_size);
+		/* expansion_tilde(args, args_size); */
 
 		// builtins
 		// TODO: Arg length check for each builtin
