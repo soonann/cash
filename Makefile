@@ -1,35 +1,64 @@
-.PHONY: build test run clean all
+.PHONY: all clean build-docker run-docker
 
-CC = clang
-CFLAGS = -xc -g -DDEBUG -Wall -Wextra -Iinclude
-OUT = cash
+CC=clang
+CPPFLAGS=-DDEBUG
+CFLAGS=-xc -g -Wall -Wextra -Iinclude
 
+OUT=cash
+OUT_DIR=cash
+SRC_FILES=$(wildcard src/*.c)
+OBJ_FILES=$(patsubst */%.c, build/$(OUT_DIR)/%.o, $(SRC_FILES))
+
+TEST_OUT=test
+TEST_OUT_DIR=test
+TEST_SRC_FILES=$(wildcard test/*.c)
+TEST_OBJ_FILES=$(patsubst */%.c, build/$(TEST_OUT_DIR)/%.o, $(TEST_SRC_FILES))
+
+# Run tests and the shell
 all: test run
 
+# Clean all builds
 clean:
-	- rm -r build/*
+	-rm -r build/* 2> /dev/null
 
-# Release
-run: build
-	./build/cash
+# ============================ RELEASE ==================================
+# Run project binary
+run: build/$(OUT_DIR)/$(OUT)
+	./$<
 
-build:
-	@mkdir -p build 2> /dev/null
-	$(CC) $(CFLAGS) -o build/$(OUT) src/*.c
+# Build binary from object files
+build/$(OUT_DIR)/$(OUT): $(OBJ_FILES)
+	@echo "Building bin ..."
+	@mkdir -p build/$(OUT_DIR) 2> /dev/null
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^
 
-# Tests
-test: build-test
-	./build/test
+# Build source files to object files
+build/$(OUT_DIR)/%.o: src/%.c
+	@echo "Building object files ..."
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^
 
-build-test: 
-	@mkdir -p build 2> /dev/null
-	$(CC) $(CFLAGS) -o build/test test/*.c
+# ============================ TESTS ====================================
+# Run test binary
+test: build/$(TEST_OUT_DIR)/$(TEST_OUT)
+	./$<
 
-# Docker
+# Build test binary
+build/$(TEST_OUT_DIR)/$(TEST_OUT): $(TEST_OBJ_FILES)
+	@echo "Building test bin ..."
+	@mkdir -p build/$(TEST_OUT_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^
+
+# Build test object files
+build/$(TEST_OUT_DIR)/%.o: test/%.c
+	@echo "Building test object files ..."
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^
+
+
+# ============================ DOCKER ===================================
+# Build Docker image
 build-docker:
 	docker build -t cash:latest -f docker/Dockerfile .
 
+# Run docker container with image
 run-docker:
 	docker run --name cash -it --rm cash:latest cash
-
-
