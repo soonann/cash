@@ -10,4 +10,4 @@ COPY . /opt
 
 RUN make build
 
-RUN install -m 655 /build/cash/cash /usr/bin/cash
+RUN install -m 655 build/cash/cash /usr/bin/cash

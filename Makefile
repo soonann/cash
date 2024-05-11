@@ -19,12 +19,15 @@ all: test run
 
 # Clean all builds
 clean:
-	-rm -r build/* 2> /dev/null
+	-rm -r build 2> /dev/null
 
 # ============================ RELEASE ==================================
-# Run project binary
+# Run bin
 run: build/$(OUT_DIR)/$(OUT)
 	./$<
+
+# Build bin
+build: build/$(OUT_DIR)/$(OUT)
 
 # Build binary from object files
 build/$(OUT_DIR)/$(OUT): $(OBJ_FILES)
