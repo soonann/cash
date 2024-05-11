@@ -5,7 +5,7 @@
 
 void test_expansion_tilde_str()
 {
-	fputs("testing parser", stdout);
+	fputs("testing parser\n", stdout);
 }
 
 int main(int argc, char *argv[])
