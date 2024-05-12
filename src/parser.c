@@ -61,13 +61,12 @@ void _expansion_tilde_str(char *str, int str_size)
 	int i = 0;
 
 	// TODO: strpbrk
-	// TODO: unit test this part
 	char *tmp = strpbrk(str, DELIM);
-	while (tmp != NULL) {
-		char c = *tmp;
-		if (c == '~') {
-		}
-	}
+	/* while (tmp != NULL) { */
+	/* 	char c = *tmp; */
+	/* 	if (c == '~') { */
+	/* 	} */
+	/* } */
 }
 
 // Example banner of shell
