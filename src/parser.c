@@ -1,28 +1,19 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <pwd.h>
+#include <sys/types.h>
 
 #include "cash.h"
 #include "parser.h"
 
-// TODO:
-// does it make sense to be allocating memory dynamically?
-// heap is slow as compared to the stack
-// do i actually need anything in the heap? look at pre-call of parse_args_str
-
-/*
- * Given string str of length str_size containing a command with args
- * parse_args_str returns a 2D char array [command/args0, args1, ..., argsn].
- *
- * Note: The delimiter of each command or argument can be set with the use of
- * the macro IFS.
- */
 void parse_args_str(char *str, int str_size, char **args, int *args_size)
 {
 	// Init a 2D array
 	// TODO: refactor to 2D array instead of pointers
 	int i = 0;
 	*args = strtok(str, IFS);
-	while (*(args + i) != NULL) {
+	while (*(args + i) != NULL && i < str_size) {
 		// Only shift the pointer when it is not an empty string
 		if (strlen(*(args + i)) > 0) {
 			i++;
@@ -33,40 +24,76 @@ void parse_args_str(char *str, int str_size, char **args, int *args_size)
 	*args_size = i;
 }
 
-/*
- * Given 2D char array, perform tilde expansion in each sub array
- * refer to _tilde_expansion_str for the implementation of expansion
- */
 void expansion_tilde(char **str, int str_size)
 {
 	for (int i = 0; i < str_size; i++) {
-		char *s = str[i];
-		_expansion_tilde_str(s, strlen(s));
+        if (str[i] != NULL){
+            _expansion_tilde_str(str+i, strlen(str[i]));
+        }
 	}
 }
 
-/* 
- * Helper for tilde_expansion_cmd.
- *
- * Given a str containing a command/arg, scans for the '~' char and replaces
- * it according to the following rules:
- * - expand ~ to home directory of current user
- * - expand ~user to home directory of user when its exists, but keep ~not-user
- *   as ~not-user when the user cannot be found with getpwnam(3)
- */
-void _expansion_tilde_str(char *str, int str_size)
+void _expansion_tilde_str(char **str_ptr, int str_size)
 {
-	const char DELIM[] = "~/";
-	char idx[str_size][str_size];
-	int i = 0;
+    char *str = strdup(*str_ptr);
 
-	// TODO: strpbrk
-	char *tmp = strpbrk(str, DELIM);
-	/* while (tmp != NULL) { */
-	/* 	char c = *tmp; */
-	/* 	if (c == '~') { */
-	/* 	} */
-	/* } */
+    char name[50];
+    int name_size = 0;
+
+    const char *home = getenv("HOME");
+    int home_size = strlen(home);
+
+    int tilde_idx = -1;
+    int slash_idx = -1;
+
+    // Find the tilde and slash
+    for (int i = 0; i < str_size; i++) {
+        char *ptr = str+i;
+        if (*ptr == '/') {
+            slash_idx = i; 
+            break;
+        } else if (tilde_idx != -1) {
+            name[name_size++] = *ptr;
+        } else if (*ptr == '~') {
+            tilde_idx = i; 
+            *ptr = '\0';
+        }
+    }
+
+    // Didn't find any tilde to replace
+    if (tilde_idx == -1) {
+#if DEBUG
+        fputs("DEBUG: No tilde found\n", stdout);
+#endif
+        return;
+    }
+
+    struct passwd *user;
+    user = getpwnam(name);
+
+    // No records of the given user is found
+    if (name_size != 0 && user == NULL) {
+#if DEBUG
+        fputs("User not found\n", stdout);
+#endif
+        return;
+    }
+    
+    // New size = curr size + homedir size - 1
+    int new_size = str_size + home_size;
+    *str_ptr = realloc(*str_ptr, new_size * sizeof(char));
+    memset(*str_ptr, '\0', new_size);
+
+    // There isn't a slash, just set the slash as the string's \0 index
+    if (slash_idx == -1) {
+        slash_idx = new_size;
+    }
+
+    strcat(*str_ptr, str);
+    strcat(*str_ptr, home);
+    strcat(*str_ptr, str+tilde_idx+name_size+1);
+
+    free(str);
 }
 
 // Example banner of shell

@@ -45,7 +45,7 @@ int main()
 #endif
 
 		// Tilde expansion
-		/* expansion_tilde(args, args_size); */
+		expansion_tilde(args, args_size);
 
 		// builtins
 		// TODO: Arg length check for each builtin

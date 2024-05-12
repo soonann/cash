@@ -21,6 +21,7 @@ void expansion_tilde(char **str, int str_size);
 
 /* 
  * Helper for tilde_expansion_cmd.
+ * This function takes in a pointer to a heap allocated array char **str
  *
  * Given a str containing a command/arg, scans for the '~' char and replaces
  * it according to the following rules:
@@ -28,7 +29,7 @@ void expansion_tilde(char **str, int str_size);
  * - expand ~user to home directory of user when its exists, but keep ~not-user
  *   as ~not-user when the user cannot be found with getpwnam(3)
  */
-void _expansion_tilde_str(char *str, int str_size);
+void _expansion_tilde_str(char **str_ptr, int str_size);
 
 /*
  * Simple banner for the shell
