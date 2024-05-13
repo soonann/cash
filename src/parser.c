@@ -68,7 +68,7 @@ void _expansion_tilde_str(char **str_ptr, int str_size)
 {
     char *str = strdup(*str_ptr);
 
-    char name[50];
+    char name[100];
     int name_size = 0;
     struct passwd *user;
 
@@ -103,6 +103,7 @@ void _expansion_tilde_str(char **str_ptr, int str_size)
 
     // Name is found beside the tilde, find user's home dir
     if (name_size > 0) {
+        // TODO: handle errno
         user = getpwnam(name);
         if (user == NULL) {
 #if DEBUG
