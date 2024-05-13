@@ -29,14 +29,15 @@ int main()
 			return 1;
 		}
 
-		// Parse the input into command and args
 		char **args = malloc(MAX_CMD_ARGS * sizeof(char *));
 		int args_size;
+
+		// Parse the input into command and args
 		parse_args_str(s, strlen(s), args, &args_size);
 		args = realloc(args, args_size * sizeof(char *));
 
+
 #ifdef DEBUG
-		// Print the output of the shell
 		int offset = 0;
 		while (offset < args_size) {
 			printf("line is: %s\n", *(args + offset));
@@ -46,6 +47,14 @@ int main()
 
 		// Tilde expansion
 		expansion_tilde(args, args_size);
+
+#ifdef DEBUG
+		offset = 0;
+		while (offset < args_size) {
+			printf("line is: %s\n", *(args + offset));
+			offset++;
+		}
+#endif
 
 		// builtins
 		// TODO: Arg length check for each builtin

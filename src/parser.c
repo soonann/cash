@@ -12,13 +12,27 @@ void parse_args_str(char *str, int str_size, char **args, int *args_size)
 	// Init a 2D array
 	// TODO: refactor to 2D array instead of pointers
 	int i = 0;
-	*args = strtok(str, IFS);
-	while (*(args + i) != NULL && i < str_size) {
+
+    char *tok = strtok(str, IFS);
+    int tok_size = strlen(tok);
+    *args = calloc(tok_size, sizeof(char));
+    strcpy(*args, tok);
+
+	while (tok != NULL && i < str_size) {
 		// Only shift the pointer when it is not an empty string
-		if (strlen(*(args + i)) > 0) {
+		if (tok_size > 0) {
+            *(args+i) = calloc(tok_size, sizeof(char));
+            strcpy(*(args+i), tok);
 			i++;
-		}
-		*(args + i) = strtok(NULL, IFS);
+		} else {
+            *(args+i) = NULL;
+        }
+        tok = strtok(NULL, IFS);
+        if (tok != NULL) {
+            tok_size = strlen(tok);
+        } else {
+            tok_size = 0;
+        }
 	}
 	i++; // Include the trailing null byte
 	*args_size = i;
@@ -27,7 +41,7 @@ void parse_args_str(char *str, int str_size, char **args, int *args_size)
 void expansion_tilde(char **str, int str_size)
 {
 	for (int i = 0; i < str_size; i++) {
-        if (str[i] != NULL){
+        if (str+i != NULL && str[i] != NULL){
             _expansion_tilde_str(str+i, strlen(str[i]));
         }
 	}
@@ -39,37 +53,49 @@ void _expansion_tilde_str(char **str_ptr, int str_size)
 
     char name[50];
     int name_size = 0;
+    struct passwd *user;
 
-    const char *home = getenv("HOME");
+    char *home = getenv("HOME");
     int home_size = strlen(home);
 
-    int tilde_idx = -1;
-    int slash_idx = -1;
+    int rep_start = -1;
+    int rep_end = str_size;
 
     // Find the tilde and slash
+    // rep_start = index of '~'
+    // rep_end = index of '/' after tilde
     for (int i = 0; i < str_size; i++) {
         char *ptr = str+i;
         if (*ptr == '/') {
-            slash_idx = i; 
+            rep_end = i; 
             break;
-        } else if (tilde_idx != -1) {
+        } else if (rep_start != -1) {
             name[name_size++] = *ptr;
         } else if (*ptr == '~') {
-            tilde_idx = i; 
-            *ptr = '\0';
+            rep_start = i; 
         }
     }
 
-    // Didn't find any tilde to replace
-    if (tilde_idx == -1) {
+    // No tilde in the string, expansion not needed
+    if (rep_start == -1) { 
 #if DEBUG
         fputs("DEBUG: No tilde found\n", stdout);
 #endif
         return;
-    }
+    } 
 
-    struct passwd *user;
-    user = getpwnam(name);
+    // Name is found beside the tilde, find user's home dir
+    if (name_size > 0) {
+        user = getpwnam(name);
+        if (user == NULL) {
+#if DEBUG
+            fputs("DEBUG: User specified but not found\n", stdout);
+#endif
+            return;
+        }
+        home = user->pw_dir;
+        home_size = strlen(home);
+    }
 
     // No records of the given user is found
     if (name_size != 0 && user == NULL) {
@@ -79,19 +105,24 @@ void _expansion_tilde_str(char **str_ptr, int str_size)
         return;
     }
     
-    // New size = curr size + homedir size - 1
-    int new_size = str_size + home_size;
+    /* 
+     * Resize the input pointer to remove tilde (and username) size
+     * and include expanded home directory size
+     * New size = curr size - tilde_username_size + home_size
+     */ 
+    int new_size = str_size - (rep_end - rep_start) + home_size;
+#if DEBUG
+        printf("new_size = %d\n", new_size);
+#endif
     *str_ptr = realloc(*str_ptr, new_size * sizeof(char));
     memset(*str_ptr, '\0', new_size);
 
-    // There isn't a slash, just set the slash as the string's \0 index
-    if (slash_idx == -1) {
-        slash_idx = new_size;
-    }
-
-    strcat(*str_ptr, str);
+    // Copy the existing string until the tilde character
+    strncat(*str_ptr, str, rep_start);
+    // Copy the home directory
     strcat(*str_ptr, home);
-    strcat(*str_ptr, str+tilde_idx+name_size+1);
+    // Copy the existing string's trailing part (slash onwards)
+    strcat(*str_ptr, str+rep_end);
 
     free(str);
 }
