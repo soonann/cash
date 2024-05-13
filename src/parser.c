@@ -7,35 +7,52 @@
 #include "cash.h"
 #include "parser.h"
 
-void parse_args_str(char *str, int str_size, char **args, int *args_size)
-{
-	// Init a 2D array
-	// TODO: refactor to 2D array instead of pointers
+void parse_args_str(char *str, int str_size, char ***args, int *args_size)
+{   
+
 	int i = 0;
 
-    char *tok = strtok(str, IFS);
-    int tok_size = strlen(tok);
-    *args = calloc(tok_size, sizeof(char));
-    strcpy(*args, tok);
+    // Allocate memory for the 2D Array
+    *args = calloc(MAX_CMD_ARGS, sizeof(char *));
+    char **args_ptr = *args;
 
+    // Tokenize fist time and check if there is a result
+    char *tok = strtok(str, IFS);
+    int tok_size = 0;
+
+    if (tok != NULL) {
+        tok_size = strlen(tok);
+        *args_ptr = calloc(tok_size, sizeof(char));
+        strcpy(*args_ptr, tok);
+    } else {
+        *args = realloc(*args, sizeof(char *)); // Resize before returning
+        *args = NULL;
+        *args_size = i;
+        return;
+    }
+
+    // Tokenizing loop
 	while (tok != NULL && i < str_size) {
+
 		// Only shift the pointer when it is not an empty string
 		if (tok_size > 0) {
-            *(args+i) = calloc(tok_size, sizeof(char));
-            strcpy(*(args+i), tok);
 			i++;
-		} else {
-            *(args+i) = NULL;
-        }
+		}
+
+        // Get the token again and check its length
         tok = strtok(NULL, IFS);
         if (tok != NULL) {
             tok_size = strlen(tok);
+            *(args_ptr+i) = calloc(tok_size, sizeof(char));
+            strcpy(*(args_ptr+i), tok);
         } else {
             tok_size = 0;
         }
 	}
+
 	i++; // Include the trailing null byte
 	*args_size = i;
+    *args = realloc(*args, (*args_size) * sizeof(char *));
 }
 
 void expansion_tilde(char **str, int str_size)

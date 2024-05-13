@@ -11,7 +11,7 @@
  * Note: The delimiter of each command or argument can be set with the use of
  * the macro IFS.
  */
-void parse_args_str(char *str, int str_size, char **args, int *args_size);
+void parse_args_str(char *str, int str_size, char ***args, int *args_size);
 
 /*
  * Given 2D char array, perform tilde expansion in each sub array

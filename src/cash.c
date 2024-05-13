@@ -29,12 +29,13 @@ int main()
 			return 1;
 		}
 
-		char **args = malloc(MAX_CMD_ARGS * sizeof(char *));
-		int args_size;
-
 		// Parse the input into command and args
-		parse_args_str(s, strlen(s), args, &args_size);
-		args = realloc(args, args_size * sizeof(char *));
+		char **args;
+		int args_size;
+		parse_args_str(s, strlen(s), &args, &args_size);
+        if (args_size <= 0) {
+            continue;
+        }
 
 
 #ifdef DEBUG
