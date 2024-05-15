@@ -11,25 +11,28 @@
  */
 void test_expansion_tilde_str_helper(char *in, char *ex)
 {
-    char *heap_in = calloc(strlen(in)+1, sizeof(char));
-    heap_in = strdup(in);
-    printf("Testing: %s\n", in);
-    _expansion_tilde_str(&heap_in, strlen(in));
-    printf("Result: %s\n\n", heap_in);
-    assert(!strcmp(heap_in, ex));
+	char *heap_in = calloc(strlen(in) + 1, sizeof(char));
+	heap_in = strdup(in);
+	printf("Testing: %s\n", in);
+	_expansion_tilde_str(&heap_in, strlen(in));
+	printf("Result: %s\n\n", heap_in);
+	assert(!strcmp(heap_in, ex));
 }
 
 void test_expansion_tilde_str()
 {
-    // test inputs
+	// test inputs
 	test_expansion_tilde_str_helper("~", "/home/soonann");
-	test_expansion_tilde_str_helper( "~/development", "/home/soonann/development");
-	test_expansion_tilde_str_helper( "~soonann", "/home/soonann");
-	test_expansion_tilde_str_helper( "~soonann/development",  "/home/soonann/development");
-	test_expansion_tilde_str_helper( "~someuser", "~someuser");
-	test_expansion_tilde_str_helper( "~someuser/development/project", "~someuser/development/project");
-	test_expansion_tilde_str_helper( "ls", "ls");
-	test_expansion_tilde_str_helper( "-alhF", "-alhF");
+	test_expansion_tilde_str_helper("~/development",
+					"/home/soonann/development");
+	test_expansion_tilde_str_helper("~soonann", "/home/soonann");
+	test_expansion_tilde_str_helper("~soonann/development",
+					"/home/soonann/development");
+	test_expansion_tilde_str_helper("~someuser", "~someuser");
+	test_expansion_tilde_str_helper("~someuser/development/project",
+					"~someuser/development/project");
+	test_expansion_tilde_str_helper("ls", "ls");
+	test_expansion_tilde_str_helper("-alhF", "-alhF");
 }
 
 int main()

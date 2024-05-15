@@ -32,11 +32,10 @@ int main()
 		// Parse the input into command and args
 		char **args;
 		int args_size;
-		parse_args_str(s, strlen(s), &args, &args_size);
-        if (args_size <= 0) {
-            continue;
-        }
-
+		parse_args(&args_size, &args, strlen(s), s);
+		if (args_size <= 0) {
+			continue;
+		}
 
 #ifdef DEBUG
 		int offset = 0;

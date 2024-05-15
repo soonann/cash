@@ -1,17 +1,25 @@
-
-// TODO:
-// does it make sense to be allocating memory dynamically?
-// heap is slow as compared to the stack
-// do i actually need anything in the heap? look at pre-call of parse_args_str
-
 /*
- * Given string str of length str_size containing a command with args
- * parse_args_str returns a 2D char array [command/args0, args1, ..., argsn].
+ * Given a command in the form of a char *str of length int *str_size,
+ * parse_args splits the commands and arguments in the string into a 2D
+ * array format e.g. [command, arg1, arg2, ... argn]
+ *
+ * The function dynamically allocates memory for the parsed outputs at
+ * char ***argv and keeps track of the number of elements in the 2D array
+ * with the int *argc variable
+ *
+ * The allocated memory can be free-ed after when it is no longer needed:
+ *
+ * const char cmd_args[] = "ls -al -hF";
+ * parse_args(arg_size, arg, strlen(), strlen(cmd_args), cmd_args);"
+ * ...
+ * ...
+ * ...
+ * free(arg);
  *
  * Note: The delimiter of each command or argument can be set with the use of
  * the macro IFS.
  */
-void parse_args_str(char *str, int str_size, char ***args, int *args_size);
+void parse_args(int *argc, char ***argv, int str_size, char *str);
 
 /*
  * Given 2D char array, perform tilde expansion in each sub array
