@@ -24,7 +24,7 @@ int main()
 		printf("%s$ ", cwd);
 
 		char *s = fgets(buf, MAX_INPUT_BYTES, stdin);
-		if (s == NULL) {
+		if (!s) {
 			printf("exited shell \n");
 			return 1;
 		}
@@ -33,28 +33,12 @@ int main()
 		char **args;
 		int args_size;
 		parse_args(&args_size, &args, strlen(s), s);
-		if (args_size <= 0) {
+		if (!args_size || !args) {
 			continue;
 		}
 
-#ifdef DEBUG
-		int offset = 0;
-		while (offset < args_size) {
-			printf("line is: %s\n", *(args + offset));
-			offset++;
-		}
-#endif
-
 		// Tilde expansion
 		expansion_tilde(args, args_size);
-
-#ifdef DEBUG
-		offset = 0;
-		while (offset < args_size) {
-			printf("line is: %s\n", *(args + offset));
-			offset++;
-		}
-#endif
 
 		// builtins
 		// TODO: Arg length check for each builtin
