@@ -16,43 +16,48 @@ int main()
 
 	// Handle EOF
 	while (!feof(stdin)) {
-		char buf[MAX_INPUT_BYTES];
-		char cwd[MAX_PATH_BYTES];
-
 		// Get current working directory
+		char cwd[MAX_PATH_BYTES];
 		getcwd(cwd, MAX_PATH_BYTES);
 		printf("%s$ ", cwd);
 
+		char buf[MAX_INPUT_BYTES];
 		char *s = fgets(buf, MAX_INPUT_BYTES, stdin);
 		if (!s) {
 			printf("exited shell \n");
 			return 1;
 		}
 
-		// Parse the input into command and args
-		char **args;
-		int args_size;
-		parse_args(&args_size, &args, strlen(s), s);
-		if (!args_size || !args) {
+		// Parse input to redirection components
+		char **redir_args;
+		int redir_size;
+		parse_redirection(&redir_size, &redir_args, strlen(s), s);
+
+		// Parse input into command and args
+		char **cmd_args;
+		int cmd_size;
+		parse_args(&cmd_size, &cmd_args, strlen(s), s);
+		if (!cmd_size || !cmd_args) {
 			continue;
 		}
 
 		// Tilde expansion
-		expansion_tilde(args, args_size);
+		expansion_tilde(cmd_args, cmd_size);
 
 		// builtins
 		// TODO: Arg length check for each builtin
 		// TODO: Convert if else to switch case using enums and strcmp
 
-		if (args_size <= 0 || strlen(args[0]) <= 0) {
+		if (cmd_size <= 0 || strlen(cmd_args[0]) <= 0) {
 			continue;
-		} else if (args[0][0] == '.' || args[0][0] == '/') {
+		} else if (cmd_args[0][0] == '.' || cmd_args[0][0] == '/') {
 			pid_t pid = fork();
 			if (pid == -1) {
-				printf("%s: %s\n", args[0], strerror(errno));
+				printf("%s: %s\n", cmd_args[0],
+				       strerror(errno));
 			} else if (pid == 0) {
-				if (my_exec(args[0], args) == -1) {
-					printf("%s: %s\n", args[0],
+				if (my_exec(cmd_args[0], cmd_args) == -1) {
+					printf("%s: %s\n", cmd_args[0],
 					       strerror(errno));
 					exit(1);
 				} else {
@@ -62,10 +67,10 @@ int main()
 				int wstatus;
 				waitpid(pid, &wstatus, 0);
 			}
-		} else if (!strcmp(args[0], "exit")) {
+		} else if (!strcmp(cmd_args[0], "exit")) {
 			int code = 0;
-			if (args[1] != NULL) {
-				code = atoi(args[1]);
+			if (cmd_args[1] != NULL) {
+				code = atoi(cmd_args[1]);
 			}
 
 			if (my_exit(code) == -1) {
@@ -75,17 +80,17 @@ int main()
 			}
 
 			return code;
-		} else if (!strcmp(args[0], "cd")) {
-			if (my_cd(args[1]) == -1) {
+		} else if (!strcmp(cmd_args[0], "cd")) {
+			if (my_cd(cmd_args[1]) == -1) {
 				printf("cd: %s\n", strerror(errno));
 			}
-		} else if (!strcmp(args[0], "exec")) {
-			if (my_exec(args[1], args + 2) == -1) {
+		} else if (!strcmp(cmd_args[0], "exec")) {
+			if (my_exec(cmd_args[1], cmd_args + 2) == -1) {
 				printf("exec: %s\n", strerror(errno));
 			}
 		} else {
 			// Search the path for the command
-			char *search = my_searchpath(args[0]);
+			char *search = my_searchpath(cmd_args[0]);
 			if (search != NULL) {
 				// Run the command
 				pid_t pid = fork();
@@ -94,9 +99,9 @@ int main()
 					printf("%s\n", strerror(errno));
 				} else if (pid == 0) {
 					// Child
-					if (my_exec(search, args) == -1) {
+					if (my_exec(search, cmd_args) == -1) {
 						printf("exec: %s: %s\n",
-						       args[0],
+						       cmd_args[0],
 						       strerror(errno));
 						exit(1);
 					} else {
@@ -108,7 +113,8 @@ int main()
 				}
 				free(search);
 			} else {
-				printf("Unrecognized command: %s\n", args[0]);
+				printf("Unrecognized command: %s\n",
+				       cmd_args[0]);
 			}
 		}
 	}

@@ -43,7 +43,7 @@ char *my_searchpath(char *file)
 
 	// Split path_cpy str by :
 	const char *delim = ":";
-	char **head = malloc(MAX_PATH_BYTES * sizeof(char *));
+	char **head = (char **)malloc(MAX_PATH_BYTES * sizeof(char *));
 	int ctr = 0;
 	*head = strtok(path_cpy, delim);
 	while (*(head + ctr) != NULL && ctr < MAX_PATH_BYTES) {
@@ -52,7 +52,7 @@ char *my_searchpath(char *file)
 	}
 
 	// Check each directory for the file
-	char *buf = calloc(MAX_PATH_BYTES, sizeof(char));
+	char *buf = (char *)calloc(MAX_PATH_BYTES, sizeof(char));
 	for (int i = 0; i < ctr; i++) {
 		struct stat status;
 		// TODO: fix double // problem

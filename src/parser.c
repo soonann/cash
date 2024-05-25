@@ -7,31 +7,47 @@
 #include "cash.h"
 #include "parser.h"
 
-void parse_args(int *argc, char ***argv, int str_size, char *str)
+void parse_redirection(int *argc, char ***argv, int str_size, char *str)
 {
-	// Allocate memory for the 2D Array
-	*argc = 0;
-	*argv = calloc(MAX_CMD_ARGS, sizeof(char *));
+	if (!argc || !argv || !str_size || !str) {
+		return;
+	}
 
-	// Create a convenience pointer, easier to ref
-	char **argv_ptr = *argv;
-
-	// Tokenize fist time and check if there is a result
-	char *tok = strtok(str, IFS);
-	int tok_size = 0;
-
-	// Initial call to strtok
-	if (tok != NULL) {
-		tok_size = strlen(tok);
-		*argv_ptr = calloc(tok_size, sizeof(char));
-		strcpy(*argv_ptr, tok);
-	} else {
+	char *tok = strtok(str, "><");
+	if (!tok) {
 		*argv = NULL;
 		return;
 	}
 
+	*argc = 0;
+	*argv = (char **)calloc(4, sizeof(char *));
+}
+
+void parse_args(int *argc, char ***argv, int str_size, char *str)
+{
+	if (!argc || !argv || !str_size || !str) {
+		return;
+	}
+
+	// Tokenize fist time and check if there is a result
+	char *tok = strtok(str, IFS);
+	int tok_size = 0;
+	if (!tok) {
+		*argv = NULL;
+		return;
+	}
+
+	// Allocate memory for the 2D Array
+	*argc = 0;
+	*argv = (char **)calloc(MAX_CMD_ARGS, sizeof(char *));
+	char **argv_ptr = *argv;
+
+	tok_size = strlen(tok);
+	*argv_ptr = (char *)calloc(tok_size, sizeof(char));
+	strcpy(*argv_ptr, tok);
+
 	// Tokenizing loop
-	while (tok != NULL && *argc < str_size) {
+	while (!tok && *argc < str_size) {
 		// Only shift the pointer when it is not an empty string
 		if (tok_size > 0) {
 			*argc += 1;
@@ -39,16 +55,16 @@ void parse_args(int *argc, char ***argv, int str_size, char *str)
 
 		tok = strtok(NULL, IFS);
 		tok_size = 0;
-		if (tok != NULL) {
+		if (!tok) {
 			tok_size = strlen(tok);
 			char **argv_tmp = argv_ptr + *argc;
-			*argv_tmp = calloc(tok_size, sizeof(char));
+			*argv_tmp = (char *)calloc(tok_size, sizeof(char));
 			strcpy(*argv_tmp, tok);
 		}
 	}
 
 	*argc += 1; // Include the trailing null byte
-	*argv = realloc(*argv, (*argc) * sizeof(char *));
+	*argv = (char **)realloc(*argv, (*argc) * sizeof(char *));
 }
 
 void expansion_tilde(char **str, int str_size)
@@ -56,12 +72,12 @@ void expansion_tilde(char **str, int str_size)
 	for (int i = 0; i < str_size; i++) {
 		char **ptr = str + 1;
 		if (ptr && *ptr) {
-			_expansion_tilde_str(ptr, strlen(*ptr));
+			_expansion_tilde(ptr, strlen(*ptr));
 		}
 	}
 }
 
-void _expansion_tilde_str(char **str_ptr, int str_size)
+void _expansion_tilde(char **str_ptr, int str_size)
 {
 	char *str = strdup(*str_ptr);
 
@@ -129,7 +145,7 @@ void _expansion_tilde_str(char **str_ptr, int str_size)
 #if DEBUG
 	printf("new_size = %d\n", new_size);
 #endif
-	*str_ptr = realloc(*str_ptr, new_size * sizeof(char));
+	*str_ptr = (char *)realloc(*str_ptr, new_size * sizeof(char));
 	memset(*str_ptr, '\0', new_size);
 
 	// Copy the existing string until the tilde character
