@@ -7,30 +7,15 @@
 #include "cash.h"
 #include "parser.h"
 
-void parse_redirection(int *argc, char ***argv, int str_size, char *str)
+void lex(int *argc, char ***argv, int str_size, char *str, const char *SEP)
 {
-	if (!argc || !argv || !str_size || !str) {
-		return;
-	}
-
-	char *tok = strtok(str, "><");
-	if (!tok) {
-		*argv = NULL;
-		return;
-	}
-
-	*argc = 0;
-	*argv = (char **)calloc(4, sizeof(char *));
-}
-
-void parse_args(int *argc, char ***argv, int str_size, char *str)
-{
+	// Either one of the params are NULL
 	if (!argc || !argv || !str_size || !str) {
 		return;
 	}
 
 	// Tokenize fist time and check if there is a result
-	char *tok = strtok(str, IFS);
+	char *tok = strtok(str, SEP);
 	int tok_size = 0;
 	if (!tok) {
 		*argv = NULL;
@@ -40,30 +25,27 @@ void parse_args(int *argc, char ***argv, int str_size, char *str)
 	// Allocate memory for the 2D Array
 	*argc = 0;
 	*argv = (char **)calloc(MAX_CMD_ARGS, sizeof(char *));
+
+	// Convenience ptr
 	char **argv_ptr = *argv;
 
-	tok_size = strlen(tok);
-	*argv_ptr = (char *)calloc(tok_size, sizeof(char));
-	strcpy(*argv_ptr, tok);
-
 	// Tokenizing loop
-	while (!tok && *argc < str_size) {
+	while (!tok) {
+		tok_size = strlen(tok);
+		char **argv_tmp = argv_ptr + *argc;
+		*argv_tmp = (char *)calloc(tok_size, sizeof(char));
+		strcpy(*argv_tmp, tok);
+
+		tok = strtok(NULL, SEP);
+		tok_size = 0;
 		// Only shift the pointer when it is not an empty string
 		if (tok_size > 0) {
 			*argc += 1;
 		}
-
-		tok = strtok(NULL, IFS);
-		tok_size = 0;
-		if (!tok) {
-			tok_size = strlen(tok);
-			char **argv_tmp = argv_ptr + *argc;
-			*argv_tmp = (char *)calloc(tok_size, sizeof(char));
-			strcpy(*argv_tmp, tok);
-		}
 	}
 
-	*argc += 1; // Include the trailing null byte
+	// Include the trailing NULL byte and resize
+	*argc += 1;
 	*argv = (char **)realloc(*argv, (*argc) * sizeof(char *));
 }
 
@@ -91,9 +73,11 @@ void _expansion_tilde(char **str_ptr, int str_size)
 	int rep_start = -1;
 	int rep_end = str_size;
 
-	// Find the tilde and slash
-	// rep_start = index of '~'
-	// rep_end = index of '/' after tilde
+	/* 
+     * Find the tilde and slash
+	 * rep_start = index of '~'
+     * rep_end = index of '/' after tilde
+	*/
 	for (int i = 0; i < str_size; i++) {
 		char *ptr = str + i;
 		if (*ptr == '/') {

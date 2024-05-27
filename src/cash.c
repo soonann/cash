@@ -29,16 +29,20 @@ int main()
 		}
 
 		// Parse input to redirection components
-		char **redir_args;
-		int redir_size;
-		parse_redirection(&redir_size, &redir_args, strlen(s), s);
+		/* char **cmd_args; */
+		/* int cmd_size; */
+		/* lex(&cmd_size, &cmd_args, strlen(s), s, IFS); */
 
 		// Parse input into command and args
 		char **cmd_args;
 		int cmd_size;
-		parse_args(&cmd_size, &cmd_args, strlen(s), s);
+		lex(&cmd_size, &cmd_args, strlen(s), s, IFS);
 		if (!cmd_size || !cmd_args) {
 			continue;
+		}
+
+		for (int i = 0; i < cmd_size; i++) {
+			printf("%s\n", *(cmd_args + i));
 		}
 
 		// Tilde expansion
