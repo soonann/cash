@@ -18,31 +18,39 @@ void lex(int *argc, char ***argv, int str_size, char *str, const char *SEP)
 	char *tok = strtok(str, SEP);
 	int tok_size = 0;
 	if (!tok) {
+		*argc = -1;
 		*argv = NULL;
 		return;
 	}
 
 	// Allocate memory for the 2D Array
-	*argc = 0;
+	*argc = -1;
 	*argv = (char **)calloc(MAX_CMD_ARGS, sizeof(char *));
 
 	// Convenience ptr
 	char **argv_ptr = *argv;
+	int prev_tok_idx = -1;
 
 	// Tokenizing loop
-	while (!tok) {
+	do {
+		// Get the length of this token
 		tok_size = strlen(tok);
-		char **argv_tmp = argv_ptr + *argc;
-		*argv_tmp = (char *)calloc(tok_size, sizeof(char));
-		strcpy(*argv_tmp, tok);
 
-		tok = strtok(NULL, SEP);
-		tok_size = 0;
-		// Only shift the pointer when it is not an empty string
+		// If its a valid token (non-empty), move 1 index forward and cpy
 		if (tok_size > 0) {
-			*argc += 1;
+			*argc = *argc + 1;
+
+			// argv_tmp represents i-th element we're trying to populate
+			char **argv_tmp = argv_ptr + *argc;
+
+			// Allocate token length size exactly and cpy the string
+			*argv_tmp = (char *)calloc(tok_size, sizeof(char));
+			strcpy(*argv_tmp, tok);
 		}
-	}
+
+		// Get the next token again
+		tok = strtok(NULL, SEP);
+	} while (tok);
 
 	// Include the trailing NULL byte and resize
 	*argc += 1;
